@@ -25,9 +25,9 @@ sheetName, style, max_row, max_col, type1, type2, ...
 ##### row
 Reading a sheet in `row` style output one predicate per row:  `sheetName(val1, val2,..., valn).`   
 The predicate name is the (transformed) name of the sheet. The predicate has as many arguments as the number of columns.  
-An empty line will be ignored.  
-An empty cell in a non empty line will raise an error, if no default value is fixed.    
-**THE FIRST LINE OF THE SHEET IS IGNORED !!!**
+An empty row will be ignored.  
+An empty cell in a non empty row will raise an error, if no default value is fixed.    
+**THE FIRST ROW OF THE SHEET IS IGNORED !!!**
 The first type corresponds to the type of the first column, the second type to the type of the second column...
 
 ##### row_indexed
@@ -36,13 +36,13 @@ with an additional argument for the row index:  `sheetName(index,val1, val2,...,
 
 
 ##### matrix_xy
-Reading a sheet in `matrix_xy` style will output one predicate per cell that is not in the first line or column:  `sheetName(x,y,val).`  
+Reading a sheet in `matrix_xy` style will output one predicate per cell that is not in the first row or column:  `sheetName(x,y,val).`  
 The predicate name is the (transformed) name of the sheet. The predicate has 3 arguments:
 * `x` corresponding to the value of the first column of the row of the cell.
 * `y` corresponding to the value of the first row of the column of the cell.
 * `val` corresponding to the value of the cell
 
-An empty cell in a non empty line will raise an error, if no default value is fixed    
+An empty cell in a non empty row will raise an error, if no default value is fixed    
 The first type corresponds to the type of the first column of the sheet.  
 The second type corresponds to the type of the first row of the sheet.  
 The third type corresponds to the type of the inner matrix.
