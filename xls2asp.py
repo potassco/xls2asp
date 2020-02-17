@@ -41,14 +41,14 @@ class TableNameError(ValueError):
 
 class SheetRowColumnWrongTypeValueError(ValueError):
     def __init__(self, table, row, col, msg, value=None):
-      ValueError.__init__(self, 'Wrong type in sheet "{}" row "{}" column "{}": {}'.format(table, row, utils.cell.get_column_letter(col+1), msg), value)
+      ValueError.__init__(self, 'Wrong type in sheet "{}" row "{}" column "{}": {}'.format(table, row, xls.utils.cell.get_column_letter(col+1), msg), value)
 
 class Conversion:
 
 
     @staticmethod
     def col2letter(col):
-        return utils.cell.get_column_letter(col)
+        return xls.utils.cell.get_column_letter(col)
 
     @staticmethod
     def date2tuple(value):
@@ -612,7 +612,7 @@ def main():
         return 0
     except Xls2AspError as e:
         sys.stderr.write("*** Exception: {}\n".format(e))
-        sys.stderr.write("***   In sheet={0}:{1}{2}\n".format(e.sheet, utils.cell.get_column_letter(e.cell[1]), e.cell[0]))
+        sys.stderr.write("***   In sheet={0}:{1}{2}\n".format(e.sheet, xls.utils.cell.get_column_letter(e.cell[1]), e.cell[0]))
         return 1
     except Exception as e:
         traceback.print_exception(*sys.exc_info())
