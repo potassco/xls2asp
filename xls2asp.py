@@ -376,6 +376,13 @@ class Instance:
             return default
         if isinstance(value, datetime.time):
             return Conversion.time2tuple(value)
+        if value == datetime.datetime(1899, 12, 30, 0, 0):
+            print(
+                "Warning in table", table, "row ", row, "col ", col)
+            print("Expected a time, getting:", value)
+            print(
+                "This could a know XLS error for times like 00:00:00, treating this as datetime.time(00:00:00).")
+            return "(0,0,0)"
         else:
             raise SheetRowColumnWrongTypeValueError(
                 table, row, col, "Expecting a time, getting:", value)
