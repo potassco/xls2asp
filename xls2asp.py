@@ -20,26 +20,33 @@ import datetime
 from operator import itemgetter
 
 current_datetime = datetime.datetime.now()
-current_date = datetime.date(current_datetime.year, current_datetime.month, current_datetime.day)
+current_date = datetime.date(
+    current_datetime.year, current_datetime.month, current_datetime.day)
 
-# list all styles and types 
+# list all styles and types
 list_of_styles = ["matrix_xy", "row"]
-list_of_types = ["auto_detect", "skip", "int", "constant", "time", "date", "date_rel", "datetime", "datetime_rel", "string"]
+list_of_types = ["auto_detect", "skip", "int", "constant", "time",
+                 "date", "date_rel", "datetime", "datetime_rel", "string"]
+
 
 def write_category_comment(output, pred):
     output.write('%' * (len(pred) + 6) + '\n')
     output.write('%% ' + pred + ' %%\n')
     output.write('%' * (len(pred) + 6) + '\n')
 
+
 class Xls2AspError(ValueError):
-    def __init__(self, msg, sheet = "?", cell = (1,0)):
+    def __init__(self, msg, sheet="?", cell=(1, 0)):
         super(Xls2AspError, self).__init__(msg)
         self.sheet = sheet
-        self.cell  = cell
+        self.cell = cell
+
 
 class SheetRowColumnWrongTypeValueError(ValueError):
     def __init__(self, table, row, col, msg, value=None):
-      ValueError.__init__(self, 'Wrong type in sheet "{}" row "{}" column "{}": {}'.format(table, row, col, msg), value)
+        ValueError.__init__(self, 'Wrong type in sheet "{}" row "{}" column "{}": {}'.format(
+            table, row, col, msg), value)
+
 
 class Conversion:
 
@@ -52,7 +59,7 @@ class Conversion:
     def date2min(value):
         delta = current_date - value
         return str(delta.days)+"*24*60"
-    
+
     @staticmethod
     def date2tuple(value):
         return "("+str(value.day)+","+str(value.month)+","+str(value.year)+")"
@@ -70,14 +77,14 @@ class Conversion:
         try:
             return int(value) == float(value)
         except (TypeError, ValueError, AttributeError):
-            return False 
+            return False
 
     @staticmethod
     def is_set_of_int(value):
         try:
             for i in value.split(";"):
                 a = int(i) == float(i)
-            return True 
+            return True
         except (TypeError, ValueError, AttributeError):
             return False
         return False
@@ -92,7 +99,7 @@ class Conversion:
     @staticmethod
     def is_unsigned(value):
         try:
-            return int(value) == float(value) &int(value) >= 0
+            return int(value) == float(value) & int(value) >= 0
         except (TypeError, ValueError):
             return False
 
@@ -101,16 +108,16 @@ class Conversion:
         value = ''.join(e for e in value if e.isalnum())
         if Conversion.is_int(value[0]):
             value = "pred"+value
-        if value[0].isupper(): 
+        if value[0].isupper():
             value = value[0].lower()+value[1:]
-        return value.replace(" ","_")
+        return value.replace(" ", "_")
 
     @staticmethod
     def make_asp_constant(value):
         """
         ensures lowercase, no leading or trailing blanks and no whitespace in between
         """
-        return int(value) if Conversion.is_int(value) else str(value).strip().lower().replace(" ","_")
+        return int(value) if Conversion.is_int(value) else str(value).strip().lower().replace(" ", "_")
 
     @staticmethod
     def is_constant_char(value):
@@ -121,7 +128,6 @@ class Conversion:
                 return False
         except (TypeError, ValueError, AttributeError):
             return False
-
 
     @staticmethod
     def is_single_constant(value):
@@ -145,7 +151,7 @@ class Conversion:
         """
         ensures lowercase and no leading or trailing blanks, no whitespace in between
         """
-        try: 
+        try:
             for i in value.split(";"):
                 if not Conversion.is_single_constant(i):
                     return False
@@ -166,7 +172,7 @@ class Conversion:
         else:
             return "("+value+")"
 
-    _regtime   = re.compile('(\d\d):(\d\d):00')
+    _regtime = re.compile('(\d\d):(\d\d):00')
     @staticmethod
     def is_hhmm00(value):
         """
@@ -176,7 +182,7 @@ class Conversion:
             return Conversion._regtime.match(value) != None
         except (TypeError, ValueError):
             return False
-    
+
     @staticmethod
     def hhmm00_in_m(value):
         """
@@ -188,40 +194,52 @@ class Conversion:
     @staticmethod
     def make_asp_tuple(value):
         "converts comma-separated string into a tuple of asp constants"
-        if value == None: return tuple()
+        if value == None:
+            return tuple()
         return tuple([Conversion.make_asp_constant(x) for x in str(value).split(',')])
 
     @staticmethod
-    def make_int(value, min = None, max = None, msg = None):
+    def make_int(value, min=None, max=None, msg=None):
         x = int(value)
-        if (min != None and x < min) or (max != None and x > max): raise ValueError("int out of range" if not msg else msg)
+        if (min != None and x < min) or (max != None and x > max):
+            raise ValueError(
+                "int out of range" if not msg else msg)
         return x
+
     @staticmethod
     def make_unsigned(value):
         return Conversion.make_int(value, min=0)
+
     @staticmethod
     def make_percent(value):
         return Conversion.make_int(value, min=0, max=100)
+
     @staticmethod
-    def make_minutes_from_hours(hours, max = None):
+    def make_minutes_from_hours(hours, max=None):
         minutes = float(hours) * 60
-        if not Conversion.is_int(minutes): raise ValueError("Time conversion loses precision")
-        if minutes < 0 or (max != None and minutes > float(max)*60): raise ValueError("Time out of range")
+        if not Conversion.is_int(minutes):
+            raise ValueError(
+                "Time conversion loses precision")
+        if minutes < 0 or (max != None and minutes > float(
+                max)*60):
+            raise ValueError("Time out of range")
         return int(minutes)
 
     @staticmethod
     def make_minutes_from_datetime(time):
         return Conversion.make_minutes_from_hours(time.hour) + time.minute
 
+
 class Template:
     """
     Class for maintaining template
     """
+
     def __init__(self):
         self.template = {}
 
     def read(self, fileName):
-        with open(fileName,"r") as f:
+        with open(fileName, "r") as f:
             for line in f:
                 reader = csv.reader([line], skipinitialspace=True)
                 template = {}
@@ -232,10 +250,11 @@ class Template:
                 if style not in list_of_styles:
                     raise ValueError('style not valid: '+style)
                 self.add_style(table, style)
-                types=line[2:]
+                types = line[2:]
                 if style == "matrix_xy":
                     if len(types) != 3:
-                        raise ValueError('3 types are needed to read in matrix style')
+                        raise ValueError(
+                            '3 types are needed to read in matrix style')
                 for t in types:
                     types[types.index(t)] = t.strip()
                     t = t.strip()
@@ -249,51 +268,53 @@ class Template:
         Adds a table and ensures it is unique
         """
         assert table not in self.template, "Duplicate table '%r' in template" % table
-        self.template.setdefault(table,{})
+        self.template.setdefault(table, {})
 
     def add_types(self, table, types):
         """
         Adds a predicate types to a table
         """
-        self.template.setdefault(table,{}).setdefault("types", types)
+        self.template.setdefault(table, {}).setdefault("types", types)
 
     def add_style(self, table, style):
-        self.template.setdefault(table,{}).setdefault("style", style)
+        self.template.setdefault(table, {}).setdefault("style", style)
+
 
 class Instance:
     """
     Class for maintaining data of an instance file
     """
+
     def __init__(self, template):
         self.data = {}
         self.template = template
 
-    def write_table_row_style(self,table,file):
+    def write_table_row_style(self, table, file):
         """
         Writes table content to facts row by row
         """
-        write_category_comment(file,table)
+        write_category_comment(file, table)
         predName = Conversion.make_predicate(table)
         for row in self.data[table]["rows"]:
             pred = predName+'('
             for value in self.data[table]["rows"][row]:
                 pred += str(value)+','
-                #pred += str(self.data[table]["rows"][i])+','
+                # pred += str(self.data[table]["rows"][i])+','
             pred = pred[0:len(pred)-1]
             pred += ').\n'
             file.write(pred)
         file.write('\n')
         file.write('\n')
 
-    def write_table_matrix_xy_style(self,table,file):
+    def write_table_matrix_xy_style(self, table, file):
         """
         Writes table content to facts
         """
-        write_category_comment(file,table)
+        write_category_comment(file, table)
         predName = Conversion.make_predicate(table)
-        for r in range(2, len(self.data[table]["rows"])+1): 
+        for r in range(2, len(self.data[table]["rows"])+1):
             y = self.data[table]["rows"][r][0]
-            for i in range(1, len(self.data[table]["rows"][r])): 
+            for i in range(1, len(self.data[table]["rows"][r])):
                 if self.data[table]["rows"][r][i] != None:
                     pred = predName+'('+str(self.data[table]["rows"][1][i])+','
                     pred += str(y)+','
@@ -302,37 +323,39 @@ class Instance:
         file.write('\n')
         file.write('\n')
 
-    def write_predicate(self,predicate,instances,file):
+    def write_predicate(self, predicate, instances, file):
         """
         Writes predicate instances
         """
         for value in instances:
-            file.write(Conversion.make_predicate(predicate)+'('+str(value[0])+','+str(value[1])+').\n')
+            file.write(Conversion.make_predicate(predicate) +
+                       '('+str(value[0])+','+str(value[1])+').\n')
         file.write('\n')
 
     def write(self, file):
         for table in self.data:
             style = self.data[table]["style"]
             if style == "row":
-                self.write_table_row_style(table,file)
+                self.write_table_row_style(table, file)
             if style == "matrix_xy":
-                self.write_table_matrix_xy_style(table,file)
+                self.write_table_matrix_xy_style(table, file)
 
     def add_table(self, table):
         """
         Adds a table and ensures it is unique
         """
         assert table not in self.data, "Duplicate table '%r'" % table
-        self.data.setdefault(table,{})
+        self.data.setdefault(table, {})
 
     def add_style(self, table, style):
         """
         Adds style to a table
         """
-        self.data.setdefault(table,{}).setdefault("style",style)
+        self.data.setdefault(table, {}).setdefault("style", style)
 
     def add_row(self, table, id, row):
-        self.data.setdefault(table,{}).setdefault("rows",{}).setdefault(id,row)
+        self.data.setdefault(table, {}).setdefault(
+            "rows", {}).setdefault(id, row)
 
     def get_test(self, type):
         if type == "int":
@@ -359,81 +382,98 @@ class Instance:
             raise ValueError('Type not valid: '+type)
 
     def test_string(self, table, row, col, value):
-        if isinstance(value,str): 
+        if isinstance(value, str):
             return "\""+value+"\""
         else:
-            if isinstance(value,unicode) :
+            if isinstance(value, unicode):
                 return "\""+value+"\""
             print(value+" is not a string")
-            print(isinstance(value,str)) 
-            raise SheetRowColumnWrongTypeValueError(table, row, col, "Expecting a string, getting:", value)
+            print(isinstance(value, str))
+            raise SheetRowColumnWrongTypeValueError(
+                table, row, col, "Expecting a string, getting:", value)
 
     def test_int(self, table, row, col, value):
         if Conversion.is_int(value):
             return Conversion.normalize_int(value)
         else:
-            raise SheetRowColumnWrongTypeValueError(table, row, col, "Expecting an int, getting:", value)
+            raise SheetRowColumnWrongTypeValueError(
+                table, row, col, "Expecting an int, getting:", value)
 
     def test_constant(self, table, row, col, value):
         if Conversion.is_asp_constant(value):
             return Conversion.normalize_constant(value)
         else:
-            raise SheetRowColumnWrongTypeValueError(table, row, col, "Expecting a constant, getting:", value)
+            raise SheetRowColumnWrongTypeValueError(
+                table, row, col, "Expecting a constant, getting:", value)
 
     def test_time(self, table, row, col, value):
         if isinstance(value, datetime.time):
             return str(value.hour)+"*60+"+str(value.minute)
+        elif value == datetime.datetime(1899, 12, 30, 0, 0):
+            print(
+                "Warning in table ", table, "row ", row, "col ", col)
+            print("Expected a time, getting:", value)
+            print(
+                "This could a know XLS error for times like 0:00, treating this as datetime.time(0:00).")
+            value = datetime.time(hour=0, minute=0)
+            return "0"
         else:
-            raise SheetRowColumnWrongTypeValueError(table, row, col, "Expecting a time, getting:", value)
+            raise SheetRowColumnWrongTypeValueError(
+                table, row, col, "Expecting a time, getting:", value)
 
     def test_datetime(self, table, row, col, value):
         if isinstance(value, datetime.datetime):
-            return Conversion.datetime2tuple(value) 
+            return Conversion.datetime2tuple(value)
         else:
-            raise SheetRowColumnWrongTypeValueError(table, row, col, "Expecting a datetime, getting:", value)
+            raise SheetRowColumnWrongTypeValueError(
+                table, row, col, "Expecting a datetime, getting:", value)
 
     def test_datetime_rel(self, table, row, col, value):
         if isinstance(value, datetime.datetime):
-            return Conversion.datetime2(value) 
+            return Conversion.datetime2(value)
         else:
-            raise SheetRowColumnWrongTypeValueError(table, row, col, "Expecting a datetime, getting:", value)
+            raise SheetRowColumnWrongTypeValueError(
+                table, row, col, "Expecting a datetime, getting:", value)
 
     def test_date(self, table, row, col, value):
-        if isinstance(value, datetime.date): 
+        if isinstance(value, datetime.date):
             return Conversion.date2tuple(value)
         else:
-            raise SheetRowColumnWrongTypeValueError(table, row, col, "Expecting a date, getting:", value)
+            raise SheetRowColumnWrongTypeValueError(
+                table, row, col, "Expecting a date, getting:", value)
 
     def test_date_rel(self, table, row, col, value):
-        if isinstance(value, datetime.date): 
+        if isinstance(value, datetime.date):
             return Conversion.date2min(datetime.date(value.year, value.month, value.day))
         else:
-            raise SheetRowColumnWrongTypeValueError(table, row, col, "Expecting a date, getting:", value)
+            raise SheetRowColumnWrongTypeValueError(
+                table, row, col, "Expecting a date, getting:", value)
 
     def test_auto_detect(self, table, row, col, value):
         if Conversion.is_int(value):
             return Conversion.normalize_int(value)
         elif Conversion.is_asp_constant(value):
             return Conversion.normalize_constant(value)
-        elif isinstance(value,datetime.time):
+        elif isinstance(value, datetime.time):
             return str(value.hour)+"*60+"+str(value.minute)
         elif isinstance(value, datetime.datetime):
-            return Conversion.datetime2tuple(value) 
+            return Conversion.datetime2tuple(value)
         elif isinstance(value, datetime.date):
-            return Conversion.date2tuple(value) 
-        elif isinstance(value,str): 
+            return Conversion.date2tuple(value)
+        elif isinstance(value, str):
             return "\""+value+"\""
         elif value == None:
             return None
-        else: 
-            raise SheetRowColumnWrongTypeValueError(table, row, col, "Unknown type for ", value)
+        else:
+            raise SheetRowColumnWrongTypeValueError(
+                table, row, col, "Unknown type for ", value)
 
     def correct(self):
         # remove leading or trailing blanks from each value in every table
         for table in self.data:
             for r in self.data[table]["rows"]:
                 row = self.data[table]["rows"][r]
-                for value in row:  
+                for value in row:
                     try:
                         row[row.index(value)] = value.strip()
                     except (AttributeError):
@@ -450,8 +490,8 @@ class Instance:
     def correct_row_style(self, table):
         unexpected = 0
         nb_col = len(self.template[table]["types"])
-        self.data[table]["rows"].pop(1)#ignore first line  
-        #ignoring empty rows
+        self.data[table]["rows"].pop(1)  # ignore first line
+        # ignoring empty rows
         list_empty = []
         for row in self.data[table]["rows"]:
             empty = 1
@@ -467,7 +507,8 @@ class Instance:
                 unexpected = 1
                 self.data[table]["rows"][row] = self.data[table]["rows"][row][0:nb_col]
         if unexpected:
-            sys.stderr.write("WARNING: Undefined column in sheet \""+table+"\", ignoring it\n")
+            sys.stderr.write(
+                "WARNING: Undefined column in sheet \""+table+"\", ignoring it\n")
         col = 0
         for type in self.template[table]["types"]:
             if type == "skip":
@@ -478,86 +519,97 @@ class Instance:
                 for row in self.data[table]["rows"]:
                     value = self.data[table]["rows"][row][col]
                     if value == None:
-                        raise SheetRowColumnWrongTypeValueError(table, row, col, '"None" is not an expected value.')
-                    self.data[table]["rows"][row][col] = test(table, row, col+1, value)
+                        raise SheetRowColumnWrongTypeValueError(
+                            table, row, col, '"None" is not an expected value.')
+                    self.data[table]["rows"][row][col] = test(
+                        table, row, col+1, value)
                 col += 1
 
     def correct_matrix_xy_style(self, table):
         type_x = self.template[table]["types"][0]
         type_y = self.template[table]["types"][1]
         type_v = self.template[table]["types"][2]
-        
+
         self.remove_empty_column(table)
 
         # test type for x (= first line)
         test = self.get_test(type_x)
         row_x = self.data[table]["rows"][1]
-        #for i in range(1,len(row_x)): 
-        for i in range(1,len(row_x)): 
+        # for i in range(1,len(row_x)):
+        for i in range(1, len(row_x)):
             row_x[i] = test(table, 1, i+1, row_x[i])
 
         # test type for y (= first column)
         test = self.get_test(type_y)
-        for r in range(2, len(self.data[table]["rows"])+1): 
-            self.data[table]["rows"][r][0] = test(table, r, 1, self.data[table]["rows"][r][0])
-        
+        for r in range(2, len(self.data[table]["rows"])+1):
+            self.data[table]["rows"][r][0] = test(
+                table, r, 1, self.data[table]["rows"][r][0])
+
         # test type for the inner matrix
         test = self.get_test(type_v)
-        for r in range(2, len(self.data[table]["rows"])+1): 
-            for i in range(1, len(self.data[table]["rows"][r])): 
-                self.data[table]["rows"][r][i] = test(table, r, i+1, self.data[table]["rows"][r][i])
+        for r in range(2, len(self.data[table]["rows"])+1):
+            for i in range(1, len(self.data[table]["rows"][r])):
+                self.data[table]["rows"][r][i] = test(
+                    table, r, i+1, self.data[table]["rows"][r][i])
 
     def get_table_style(self, table):
         if table not in self.template:
-            sys.stderr.write("WARNING: Sheet \""+table+"\" is not defined in the template\n")
+            sys.stderr.write("WARNING: Sheet \""+table +
+                             "\" is not defined in the template\n")
             return "skip"
         style = self.template[table]["style"]
         return style
 
     def remove_empty_column(self, table):
-        empty_columns = [] 
+        empty_columns = []
         for col in range(len(self.data[table]["rows"][1])):
-            empty = True 
+            empty = True
             for row in self.data[table]["rows"]:
                 if self.data[table]["rows"][row][col] != None:
-                    empty = False 
+                    empty = False
                     break
             if empty:
                 empty_columns.append(col)
         for i in range(len(empty_columns)):
-            sys.stderr.write("WARNING: Column "+str(empty_columns[i])+" in sheet \""+table+"\" is empty, ignoring it\n")
+            sys.stderr.write(
+                "WARNING: Column "+str(empty_columns[i])+" in sheet \""+table+"\" is empty, ignoring it\n")
             for row in self.data[table]["rows"]:
                 self.data[table]["rows"][row].pop(empty_columns[i]-i)
 
 
-
-
 def compile_regex_from_list(values):
-    reg = '({})$'.format('|'.join(map(lambda x:'({})'.format(x), values)))
+    reg = '({})$'.format('|'.join(map(lambda x: '({})'.format(x), values)))
     return re.compile(reg)
+
 
 class XlsReader:
     def __init__(self, instance):
         # Expected worksheets xlsx file and their parsing functions
         self.instance = instance
-        self.active_cell = (1,0)
+        self.active_cell = (1, 0)
 
-    def get_cell_value(self, cell, inc = (0,1)):
-        if   getattr(cell, "col_idx", None): self.active_cell = (cell.row, cell.col_idx)
-        elif getattr(cell, "column", None):  self.active_cell = (cell.row, cell.column)
-        else: self.active_cell = (self.active_cell[0] + inc[0], self.active_cell[1] + inc[1])
+    def get_cell_value(self, cell, inc=(0, 1)):
+        if getattr(cell, "col_idx", None):
+            self.active_cell = (cell.row, cell.col_idx)
+        elif getattr(cell, "column", None):
+            self.active_cell = (cell.row, cell.column)
+        else:
+            self.active_cell = (
+                self.active_cell[0] + inc[0], self.active_cell[1] + inc[1])
         return cell.value
 
-    def parse_row(self, row, first = 0):
+    def parse_row(self, row, first=0):
         cols = []
         for i in range(first, len(row)):
             cols.append(row[i].value)
         return cols
 
     def parse_data_row(self, head, row, first=0, skip=True):
-        assert len(row) >= len(head), "Unexpected number of columns %r - expected %r" % (len(row), len(head))
-        for (x,y) in zip(head, row[first:]):
-            if y.value == None and skip: continue
+        assert len(row) >= len(
+            head), "Unexpected number of columns %r - expected %r" % (len(row), len(head))
+        for (x, y) in zip(head, row[first:]):
+            if y.value == None and skip:
+                continue
             yield (x, self.get_cell_value(y))
 
     def parse_data(self, data, seperator=";"):
@@ -569,14 +621,14 @@ class XlsReader:
             elif Conversion.is_asp_constant(val):
                 yield val
             else:
-                yield '"' + val.replace("\"","\\\"") + '"'
+                yield '"' + val.replace("\"", "\\\"") + '"'
 
     def parse_table(self, sheet, style):
         table = sheet.title
         print("Parsing sheet \""+table+"\" with style \""+style+"\"")
         self.instance.add_table(sheet.title)
-        self.instance.add_style(sheet.title,style)
-        self.active_cell  = (1,0)
+        self.instance.add_style(sheet.title, style)
+        self.active_cell = (1, 0)
         self.active_sheet = sheet
         try:
             id = 1
@@ -587,8 +639,7 @@ class XlsReader:
         except Exception as e:
             raise Xls2AspError(str(e), self.active_sheet, self.active_cell)
 
-
-    def parse(self,input):
+    def parse(self, input):
         """
         Parses input excel table
         """
@@ -601,12 +652,13 @@ class XlsReader:
             if style == "skip":
                 print("Skipping sheet: "+sheet.title)
             else:
-                self.parse_table(sheet,style)
+                self.parse_table(sheet, style)
         for table in self.instance.template:
             if table not in self.instance.data:
-                raise ValueError("Sheet \""+table+"\" not found") 
+                raise ValueError("Sheet \""+table+"\" not found")
             if not self.instance.data[table].__contains__("rows"):
-                sys.stderr.write("WARNING: Sheet \""+table+"\" is empty, ignoring it\n")
+                sys.stderr.write("WARNING: Sheet \""+table +
+                                 "\" is empty, ignoring it\n")
                 self.instance.data.pop(table)
                 print("Skipping sheet: "+table)
 
@@ -616,17 +668,18 @@ class XlsReader:
                 return True
         return False
 
+
 def main():
     try:
         parser = argparse.ArgumentParser(
-                description="Converts an input table to facts"
-                )
+            description="Converts an input table to facts"
+        )
         parser.add_argument('--output', '-o', metavar='<file>',
-                help='Write output into %(metavar)s', default = sys.stdout, required=False)
+                            help='Write output into %(metavar)s', default=sys.stdout, required=False)
         parser.add_argument('--xls', '-x', metavar='<file>',
-                help='Read xls file from %(metavar)s', required=True)
+                            help='Read xls file from %(metavar)s', required=True)
         parser.add_argument('--template', '-t', metavar='<file>',
-                help='Read template from %(metavar)s', required=True)
+                            help='Read template from %(metavar)s', required=True)
 
         args = parser.parse_args()
         template = Template()
@@ -635,7 +688,7 @@ def main():
         reader = XlsReader(instance)
         reader.parse(args.xls)
         instance.correct()
-        if args.output ==  sys.stdout:
+        if args.output == sys.stdout:
             instance.write(args.output)
         else:
             with open(args.output, 'w') as f:
@@ -643,12 +696,13 @@ def main():
         return 0
     except Xls2AspError as e:
         sys.stderr.write("*** Exception: {}\n".format(e))
-        sys.stderr.write("***   In sheet={0}:{1}{2}\n".format(e.sheet, utils.cell.get_column_letter(e.cell[1]), e.cell[0]))
+        sys.stderr.write("***   In sheet={0}:{1}{2}\n".format(
+            e.sheet, utils.cell.get_column_letter(e.cell[1]), e.cell[0]))
         return 1
     except Exception as e:
         traceback.print_exception(*sys.exc_info())
         return 1
 
+
 if __name__ == '__main__':
     sys.exit(main())
-
