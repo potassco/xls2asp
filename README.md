@@ -15,9 +15,8 @@ If a sheet is not described in the template it will be ignored.
 If a sheet is described in the template, but is not found in the xls file, an error will be raised.  
 A line of the template should have the format:
 ```
-sheetName, style, max_row, max_col, type1, type2, ...
+sheetName, style, type1, type2, ...
 ```
-`max_row` and `max_col` describe respectively how many row and column should be read in the table (avoid problem if a cell has been involuntarily filled)
 
 #### Styles
 4 different styles are available: `row`, `row_indexed`, `matrix_xy`, and `sparse_matrix_xy`.   
@@ -72,8 +71,8 @@ tableName, styleName, int = none, int = -1, string = 4, constant= "les carottes 
 
 **The following characters can't be used in the default value: `%`, `=`, `,`**
 
-## Testing
+<!-- ## Testing
 Running the converter on all examples and checking if output can be parsed by clingo (the tests are currently outdated):
 ```bash
 py test-all.py
-```
+``` -->
