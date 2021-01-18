@@ -374,13 +374,15 @@ class Instance:
     def test_time(self, table, row, col, value, default):
         if value == None and default != None:
             return default
-        if not isinstance(value, datetime.time):
+
+        if isinstance(value, datetime.time):
+            return Conversion.time2tuple(value)
+        else:
             try:
                 value = datetime.time.fromisoformat(value)
             except Exception:
                 pass
-        if isinstance(value, datetime.time):
-            return Conversion.time2tuple(value)
+        
         if value == datetime.datetime(1899, 12, 30, 0, 0):
             print(
                 "Warning in table", table, "row ", row, "col ", col)
