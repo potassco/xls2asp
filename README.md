@@ -82,3 +82,11 @@ tableName, styleName, int = none, int = -1, string = 4, constant= "les carottes 
 ```
 
 **The following characters can't be used in the default value: `%`, `=`, `,`**
+
+## Tests
+
+Run the tests with command:
+
+```shell
+python -m unittest tests.test.TestMain
+```
