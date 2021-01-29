@@ -1,56 +1,73 @@
-name: CI Test for xsl2asp
+name: CI Test for xls2asp
 
 on: [push]
 
 jobs:
   build-linux:
-    runs-on: "ubuntu-latest"
+    name: Test xls2asp Linux
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: ["3.8", "3.7"]
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code into workspace directory
+        uses: actions/checkout@v2
+      - name: Setup conda
+        uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           environment-file: environment.yml
           activate-environment: xls2asp
-      - name: Test xls2asp
+      - name: Run tests
         run: |
           conda init bash
           source ~/.bashrc
           conda activate xls2asp
           pytest -v ./tests/test.py
+
   build-macos:
-    runs-on: "macos-latest"
+    name: Test xls2asp Macos
+    runs-on: macos-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: ["3.8", "3.7"]
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code into workspace directory
+        uses: actions/checkout@v2
+      - name: Setup conda
+        uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           environment-file: environment.yml
           activate-environment: xls2asp
-      - name: Test xls2asp
+      - name: Run tests
         run: |
           conda init bash
           source /Users/runner/.bash_profile
           conda activate xls2asp
           pytest -v ./tests/test.py
+
   build-windows:
-    runs-on: "windows-latest"
+    name: Test xls2asp Windows
+    runs-on: macos-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: ["3.8", "3.7"]
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code into workspace directory
+        uses: actions/checkout@v2
+      - name: Setup conda
+        uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           environment-file: environment.yml
           activate-environment: xls2asp
-      - name: Test xls2asp
+      - name: Run tests
         run: |
+          conda init bash
+          eval "$(conda shell.bash hook)"
+          conda activate xls2asp
           pytest -v ./tests/test.py
