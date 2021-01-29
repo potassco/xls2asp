@@ -1,0 +1,8 @@
+name: xls2asp
+channels:
+  - potassco
+  - conda-forge
+  - defaults
+dependencies:
+  - clingo=5.4.0
+  - pytest

@@ -85,8 +85,8 @@ tableName, styleName, int = none, int = -1, string = 4, constant= "les carottes 
 
 ## Tests
 
-Run the tests with command:
+Run the tests using `pytest` with command:
 
 ```shell
-python -m unittest tests.test.TestMain
+pytest tests/test.py
 ```

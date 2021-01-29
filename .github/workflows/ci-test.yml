@@ -1,0 +1,56 @@
+name: CI Test for xsl2asp
+
+on: [push]
+
+jobs:
+  build-linux:
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          environment-file: environment.yml
+          activate-environment: xls2asp
+      - name: Test xls2asp
+        run: |
+          conda init bash
+          source ~/.bashrc
+          conda activate xls2asp
+          pytest -v ./tests/test.py
+  build-macos:
+    runs-on: "macos-latest"
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          environment-file: environment.yml
+          activate-environment: xls2asp
+      - name: Test xls2asp
+        run: |
+          conda init bash
+          source /Users/runner/.bash_profile
+          conda activate xls2asp
+          pytest -v ./tests/test.py
+  build-windows:
+    runs-on: "windows-latest"
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          environment-file: environment.yml
+          activate-environment: xls2asp
+      - name: Test xls2asp
+        run: |
+          pytest -v ./tests/test.py
