@@ -6,3 +6,5 @@ channels:
 dependencies:
   - clingo=5.4.0
   - pytest
+  - pandas
+  - openpyxl
