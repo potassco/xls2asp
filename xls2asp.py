@@ -445,11 +445,10 @@ class Instance:
         template = {}
         for table in self.data:
             newname = Conversion.make_predicate(table)
-            if newname != table:
-                assert newname not in data, "Duplicate table '%r' in template" % table
-                data.setdefault(newname, self.data[table])
-                assert newname not in self.template, "Duplicate table '%r' in template" % table
-                template.setdefault(newname, self.template[table])
+            assert newname not in data, "Duplicate table '%r' in template" % table
+            data.setdefault(newname, self.data[table])
+            assert newname not in template, "Duplicate table '%r' in template" % table
+            template.setdefault(newname, self.template[table])
         self.data = data
         self.template = template
 
